@@ -1,0 +1,14 @@
+{
+  "name": "discord-verification-bot",
+  "version": "1.0.0",
+  "description": "Bot de verificación del staff para Discord",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "node bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.0",
+    "dotenv": "^16.3.1"
+  }
+}
