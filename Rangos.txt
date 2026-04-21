@@ -1,0 +1,5 @@
+Aux.EvT | 🎪 {nombre} | {id}
+Lid.EvT | 🎪 {nombre} | {id}
+Sub.EvT | 🎪 {nombre} | {id}
+EvT | 🎪 {nombre} | {id}
+EvT-T | 🎪 {nombre} | {id}

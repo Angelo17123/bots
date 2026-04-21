@@ -5,44 +5,46 @@ require('dotenv').config();
 // CONFIGURACIÓN (usa variables de entorno o valores por defecto)
 // ============================================================
 const TOKEN = process.env.DISCORD_TOKEN || '';
-const CANAL_SOLICITUDES = process.env.CANAL_SOLICITUDES || '1494810053000167645';
-const CANAL_LOGS = process.env.CANAL_LOGS || '1494844109746081882';
-const DEV_USER_ID = process.env.DEV_USER_ID || '1494806027898504528';
-const DEV_ROLE_ID = process.env.DEV_ROLE_ID || '1494806027898585248'; // Rol DEV
-const ADM_ROLE_ID = process.env.ADM_ROLE_ID || '1494805272915480707';
+const CANAL_SOLICITUDES = process.env.BOT1_CANALES_SOLICITUDES || '1494810053000167645';
+const CANAL_LOGS = process.env.BOT1_CANALES_LOGS || '1495090888689320157';
+const DEV_USER_ID = process.env.BOT1_DEV_USER_ID || '1494806027898504528';
+const DEV_ROLE_ID = process.env.BOT1_DEV_ROLE_ID || '1495086629684252836'; // Rol DEV
+const ADM_ROLE_ID = process.env.BOT1_ADM_ROLE_ID || '1490174010758135959';
 
 // Roles disponibles
 const AVAILABLE_ROLES = {
-    '1494805472908152873': 'Alta Cupula',
-    '1494805401357652000': 'Responsable',
-    '1494805272915480707': 'ADM',
-    '1494805184180916425': 'Aux',
-    '1494805094393188542': 'Lid',
-    '1494805042685804574': 'Sub',
-    '1494804959588519957': 'Miembro',
-    '1494804831758582013': 'Tester'
+    '1495090186885922979': 'Alta Cupula',
+    '1490175650584330330': 'Responsable',
+    '1490174010758135959': 'ADM',
+    '1490173885948104894': 'Aux',
+    '1490174081507659917': 'Lid',
+    '1490174161069543596': 'Sub',
+    '1490174280170737798': 'Miembro',
+    '1490174348349276401': 'Tester'
 };
 
 // Roles que pueden aceptar solicitudes
 const ROLES_AUTORIZADOS = {
-    '1494806027898585248': 'DEV',
-    '1494805272915480707': 'ADM',
-    '1494805184180916425': 'Aux',
-    '1494805094393188542': 'Lid',
-    '1494805401357652000': 'Responsable',
-    '1494805472908152873': 'Alta Cupula'
+    '1495086629684252836': 'DEV',
+    '1490174010758135959': 'ADM',
+    '1490173885948104894': 'Aux',
+    '1490174081507659917': 'Lid',
+    '1490175650584330330': 'Responsable',
+    '1495090186885922979': 'Alta Cupula'
 };
 
 // Roles con permiso para DM
-const ROLES_DM = ['1494805272915480707', '1494805184180916425', '1494805094393188542', '1494805042685804574', '1494804959588519957', '1494804831758582013'];
+const ROLES_DM = ['1490174010758135959', '1490173885948104894', '1490174081507659917', '1490174161069543596', '1490174280170737798', '1490174348349276401', '1490384209804791899'];
+// Rol excluido de mensajes (Alta Cupula no recibe DM)
+const ROL_EXCLUIDO = '1495090186885922979';
 
 // Permisos jerárquicos
 const JERARQUIA_ROLES = [
-    { id: '1494806027898585248', nombre: 'DEV', puedeAceptar: ['Alta Cupula', 'Responsable', 'ADM', 'Aux', 'Lid', 'Sub', 'Miembro', 'Tester'] },
-    { id: '1494805472908152873', nombre: 'Alta Cupula', puedeAceptar: ['Alta Cupula', 'Responsable', 'ADM', 'Aux', 'Lid', 'Sub', 'Miembro', 'Tester'] },
-    { id: '1494805401357652000', nombre: 'Responsable', puedeAceptar: ['Aux', 'Lid', 'Sub', 'Miembro', 'Tester'] },
-    { id: '1494805272915480707', nombre: 'ADM', puedeAceptar: ['Lid', 'Sub', 'Miembro', 'Tester'] },
-    { id: '1494805184180916425', nombre: 'Aux', puedeAceptar: ['Sub', 'Miembro', 'Tester'] }
+    { id: '1495086629684252836', nombre: 'DEV', puedeAceptar: ['Alta Cupula', 'Responsable', 'ADM', 'Aux', 'Lid', 'Sub', 'Miembro', 'Tester'] },
+    { id: '1495090186885922979', nombre: 'Alta Cupula', puedeAceptar: ['Alta Cupula', 'Responsable', 'ADM', 'Aux', 'Lid', 'Sub', 'Miembro', 'Tester'] },
+    { id: '1490175650584330330', nombre: 'Responsable', puedeAceptar: ['Aux', 'Lid', 'Sub', 'Miembro', 'Tester'] },
+    { id: '1490174010758135959', nombre: 'ADM', puedeAceptar: ['Lid', 'Sub', 'Miembro', 'Tester'] },
+    { id: '1490173885948104894', nombre: 'Aux', puedeAceptar: ['Sub', 'Miembro', 'Tester'] }
 ];
 
 // ============================================================
@@ -57,31 +59,115 @@ const usuariosRegistrados = new Map(); // Persistente: userID -> { nombreIC, idI
 const usuariosPersonalizado = new Map(); // userID -> true (si eligió su propio apodo)
 
 // ============================================================
-// FUNCIONES HELPER
+// CONSTANTES NOMBRADAS (Eliminar Magic Strings)
+// ============================================================
+const ROLE_PREFIXES = Object.freeze({
+    'DEV': 'DEV 🎪',
+    'Alta Cupula': '🔥',
+    'Responsable': 'Resp.INT 💀',
+    'ADM': 'ADM.EVT 🎪',
+    'Aux': 'Aux.EVT 🎪',
+    'Lid': 'Lid.EVT 🎪',
+    'Sub': 'Sub.EVT 🎪',
+    'Miembro': 'EvT 🎪',
+    'Tester': 'EvT-T 🎪'
+});
+
+const ROLE_DISPLAY_NAMES = Object.freeze({
+    'DEV': 'DEV',
+    'Alta Cupula': 'Alta Cupula',
+    'Responsable': 'Responsable',
+    'ADM': 'ADM',
+    'Aux': 'Aux',
+    'Lid': 'Lid',
+    'Sub': 'Sub',
+    'Miembro': 'Miembro',
+    'Tester': 'Tester'
+});
+
+// ============================================================
+// FUNCIONES HELPER (DRY - Lógica reutilizable)
 // ============================================================
 
-// Obtener el rol formateado del usuario
+// Obtener el rol formateado del usuario (Extraído para eliminar duplicación)
 function obtenerRolFormateado(member) {
     const roles = Array.from(member.roles.cache.values());
+    const mapeo = {
+        'ADM': 'ADM.EvT',
+        'Responsable': 'Resp.EvT',
+        'Alta Cupula': 'Cupula.EC',
+        'Aux': 'Aux.EvT',
+        'Sub': 'Sub.EvT',
+        'Tester': 'EvT-T',
+        'Miembro': 'EvT'
+    };
     for (const rol of roles) {
-        if (rol.name === 'ADM') return 'ADM.EvT';
-        if (rol.name === 'Responsable') return 'Resp.EvT';
-        if (rol.name === 'Alta Cupula') return 'Cupula.EC';
-        if (rol.name === 'Aux') return 'Aux.EvT';
-        if (rol.name === 'Sub') return 'Sub.EvT';
-        if (rol.name === 'Tester') return 'EvT-T';
-        if (rol.name === 'Miembro') return 'EvT';
+        if (mapeo[rol.name]) return mapeo[rol.name];
     }
     return 'EvT';
+}
+
+// Buscar usuario en el servidor (Extraído - lógica duplicada 3 veces)
+async function buscarUsuario(guild, textoBusqueda) {
+    if (!guild || !textoBusqueda) return null;
+    
+    // Por mención <@!id>
+    const mentionMatch = textoBusqueda.match(/<@!?(\d+)>/);
+    if (mentionMatch) {
+        try {
+            const miembro = await guild.members.fetch(mentionMatch[1]);
+            if (miembro) return miembro;
+        } catch (e) { /* silencioso */ }
+    }
+    
+    // Por username#discriminator
+    if (textoBusqueda.includes('#')) {
+        const [username, discriminator] = textoBusqueda.split('#');
+        if (discriminator) {
+            const user = guild.members.cache.find(m => 
+                m.user.username === username && m.user.discriminator === discriminator
+            );
+            if (user) return user;
+        }
+    }
+    
+    // Por username o nickname exacto
+    const user = guild.members.cache.find(m => 
+        m.user.username.toLowerCase() === textoBusqueda.toLowerCase() ||
+        m.nickname?.toLowerCase() === textoBusqueda.toLowerCase()
+    );
+    if (user) return user;
+    
+    // Por búsqueda parcial
+    const busqueda = textoBusqueda.toLowerCase();
+    const candidatos = guild.members.cache.filter(m => 
+        m.user.username.toLowerCase().includes(busqueda) ||
+        m.nickname?.toLowerCase().includes(busqueda)
+    );
+    
+    if (candidatos.size === 1) return candidatos.first();
+    if (candidatos.size > 1) return null; // Múltiples resultados
+    
+    return null;
+}
+
+// Generar formato de nickname (Extraído - lógica duplicada)
+function generarNickname(rolNombre, nombreIC, idIC) {
+    if (rolNombre === 'Alta Cupula') {
+        return `🔥 ${nombreIC} #BuenaGente`;
+    }
+    
+    const prefijo = ROLE_PREFIXES[rolNombre] || 'EvT 🎪';
+    return `${prefijo} ${nombreIC} | ${idIC}`;
 }
 
 // Verificar si tiene permiso para DM/ClearLogs
 function tienePermisoDM(member) {
     return member.roles.cache.has(DEV_ROLE_ID) ||
            member.roles.cache.has(ADM_ROLE_ID) ||
-           member.roles.cache.has('1494805472908152873') ||
-           member.roles.cache.has('1494805401357652000') ||
-           member.roles.cache.has('1494805184180916425');
+           member.roles.cache.has('1495090186885922979') ||
+           member.roles.cache.has('1490175650584330330') ||
+           member.roles.cache.has('1490173885948104894');
 }
 
 // Enviar embed al canal de logs
@@ -155,18 +241,39 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
         // Roles que afectan el nickname (jerarquía: mayor a menor)
         const ROLES_NICKNAME = [
             { id: '1494806027898585248', nombre: 'DEV', prefijo: 'DEV 🎪' },
-            { id: '1494805472908152873', nombre: 'Alta Cupula', prefijo: '🔥' },
-            { id: '1494805401357652000', nombre: 'Responsable', prefijo: 'Resp.INT 💀' },
-            { id: '1494805272915480707', nombre: 'ADM', prefijo: 'ADM.EVT 🎪' },
-            { id: '1494805184180916425', nombre: 'Aux', prefijo: 'Aux.EVT 🎪' },
-            { id: '1494805094393188542', nombre: 'Lid', prefijo: 'Lid.EVT 🎪' },
-            { id: '1494805042685804574', nombre: 'Sub', prefijo: 'Sub.EVT 🎪' },
-            { id: '1494804959588519957', nombre: 'Miembro', prefijo: 'EvT 🎪' },
-            { id: '1494804831758582013', nombre: 'Tester', prefijo: 'EvT-T 🎪' }
+            { id: '1495090186885922979', nombre: 'Alta Cupula', prefijo: '🔥' },
+            { id: '1490175650584330330', nombre: 'Responsable', prefijo: 'Resp.INT 💀' },
+            { id: '1490174010758135959', nombre: 'ADM', prefijo: 'ADM.EVT 🎪' },
+            { id: '1490173885948104894', nombre: 'Aux', prefijo: 'Aux.EVT 🎪' },
+            { id: '1490174081507659917', nombre: 'Lid', prefijo: 'Lid.EVT 🎪' },
+            { id: '1490174161069543596', nombre: 'Sub', prefijo: 'Sub.EVT 🎪' },
+            { id: '1490174280170737798', nombre: 'Miembro', prefijo: 'EvT 🎪' },
+            { id: '1490174348349276401', nombre: 'Tester', prefijo: 'EvT-T 🎪' }
         ];
         
         const addedRoles = newRoles.filter(role => !oldRoles.has(role.id) && Object.keys(AVAILABLE_ROLES).includes(role.id));
         const removedRoles = oldRoles.filter(role => !newRoles.has(role.id) && Object.keys(AVAILABLE_ROLES).includes(role.id));
+        
+        // Auto-asignar rol adicional (1490384209804791899) excepto para Alta Cupula y Responsable
+        if (addedRoles.size > 0) {
+            const guild = newMember.guild;
+            const rangoAsignado = Array.from(addedRoles.values())[0]?.name;
+            
+            // Roles que SÍ получают el rol adicional: ADM, Aux, Lid, Sub, Miembro, Tester
+            const rolesConRolAdicional = ['ADM', 'Aux', 'Lid', 'Sub', 'Miembro', 'Tester'];
+            
+            if (rangoAsignado && rolesConRolAdicional.includes(rangoAsignado)) {
+                try {
+                    const rolAdicional = await guild.roles.fetch('1490384209804791899');
+                    if (rolAdicional && !newRoles.has(rolAdicional.id)) {
+                        await newMember.roles.add(rolAdicional);
+                        console.log(`➕ Rol adicional asignado automáticamente: ${rolAdicional.name} a ${newMember.user.username}`);
+                    }
+                } catch (e) {
+                    console.log(`⚠️ Error al asignar rol adicional: ${e.message}`);
+                }
+            }
+        }
         
         // Log de cambios de rol
         if (addedRoles.size > 0 || removedRoles.size > 0) {
@@ -522,6 +629,9 @@ async function handleModalSubmit(interaction) {
             for (const [userId, member] of allMembers) {
                 if (member.user.bot) continue;
                 
+                // Excluir al rol Alta Cupula de recibir mensajes
+                if (member.roles.cache.has(ROL_EXCLUIDO)) continue;
+                
                 await member.fetch();
                 const tieneRol = member.roles.cache.some(rol => ROLES_DM.includes(rol.id));
                 if (!tieneRol) continue;
@@ -542,7 +652,7 @@ async function handleModalSubmit(interaction) {
                 if (canalLog && canalLog.type === 0) {
                     const embedRes = new EmbedBuilder()
                         .setTitle('📨 Mensaje DM Enviado')
-                        .setDescription(`**Enviado por:** ${rolFormateado}`)
+                        .setDescription(`**Enviado por:** ${interaction.user}`)
                         .setColor(7506394)
                         .addFields(
                             { name: '💬 Mensaje', value: mensaje.slice(0, 1000) },
@@ -572,54 +682,10 @@ async function handleModalSubmit(interaction) {
             return;
         }
         
-        //Buscar usuario
-        let miembro = null;
-        
-        // Por mención
-        const mentionMatch = usuarioTexto.match(/<@!?(\d+)>/);
-        if (mentionMatch) {
-            try {
-                miembro = await guild.members.fetch(mentionMatch[1]);
-            } catch (e) {}
-        }
-        
-        // Por username#0000
+        // Buscar usuario (usando función reutilizable DRY)
+        const miembro = await buscarUsuario(guild, usuarioTexto);
         if (!miembro) {
-            const [username, discriminator] = usuarioTexto.split('#');
-            if (discriminator) {
-                const user = guild.members.cache.find(m => 
-                    m.user.username === username && m.user.discriminator === discriminator
-                );
-                if (user) miembro = user;
-            }
-        }
-        
-        // Por username directo
-        if (!miembro) {
-            const user = guild.members.cache.find(m => 
-                m.user.username.toLowerCase() === usuarioTexto.toLowerCase() ||
-                m.nickname?.toLowerCase() === usuarioTexto.toLowerCase()
-            );
-            if (user) miembro = user;
-        }
-        
-        // Buscar por nombre parcial
-        if (!miembro) {
-            const busqueda = usuarioTexto.toLowerCase();
-            const candidatos = guild.members.cache.filter(m => 
-                m.user.username.toLowerCase().includes(busqueda) ||
-                m.nickname?.toLowerCase().includes(busqueda)
-            );
-            if (candidatos.size === 1) {
-                miembro = candidatos.first();
-            } else if (candidatos.size > 1) {
-                await interaction.editReply({ content: `⚠️ Múltiplayers usuarios encontrados: ${[...candidatos.values()].map(m => m.user.username).join(', ')}` });
-                return;
-            }
-        }
-        
-        if (!miembro) {
-            await interaction.editReply({ content: '❌ Usuario no encontrado.' });
+            await interaction.editReply({ content: '❌ Usuario no encontrado o hay múltiples coincide.' });
             return;
         }
         
@@ -683,6 +749,7 @@ async function handleSelectMenu(interaction) {
 }
 
 async function handleAcceptReject(interaction) {
+    // GUARD CLAUSES - Retornos tempranos para evitar anidamiento
     const isAceptar = interaction.customId === 'btn_aceptar';
     const member = interaction.member;
     
@@ -691,15 +758,9 @@ async function handleAcceptReject(interaction) {
         return;
     }
     
-    // Verificar permisos
+    // Verificar permisos con búsqueda temprana
     const userRoles = member.roles.cache;
-    let rolAutorizador = null;
-    for (const [rolId] of Object.entries(ROLES_AUTORIZADOS)) {
-        if (userRoles.has(rolId)) {
-            rolAutorizador = rolId;
-            break;
-        }
-    }
+    const rolAutorizador = Object.keys(ROLES_AUTORIZADOS).find(id => userRoles.has(id));
     
     if (!rolAutorizador) {
         await interaction.reply({ content: '❌ Sin permiso.', flags: 64 });
@@ -717,10 +778,10 @@ async function handleAcceptReject(interaction) {
     const fields = embed.data.fields;
     const rangoSolicitado = fields.find(f => f.name === 'Rango')?.value || '';
     
-    // Verificaciones de jerarquía
+    // Verificación jerárquica: solo DEV o Alta Cupula pueden aprobar Alta Cupula
     const esAltaCupula = rangoSolicitado === 'Alta Cupula';
-    const tieneAltaCupula = member.roles.cache.has('1494805472908152873');
-    const tieneDevRol = member.roles.cache.has(DEV_ROLE_ID);
+    const tieneAltaCupula = userRoles.has('1494805472908152873');
+    const tieneDevRol = userRoles.has(DEV_ROLE_ID);
     const esDev = interaction.user.id === DEV_USER_ID || tieneDevRol;
     
     if (esAltaCupula && !tieneAltaCupula && !esDev) {
@@ -790,6 +851,15 @@ async function handleAcceptReject(interaction) {
                             // Primero: agregar nuevo rol (así siempre tiene un rol para evitar race condition)
                             await miembro.roles.add(nuevoRol);
                             
+                            // Agregar rol adicional (1490384209804791899) excepto para Alta Cupula y Responsable
+                            if (rango !== 'Alta Cupula' && rango !== 'Responsable') {
+                                const rolAdicional = await guild.roles.fetch('1490384209804791899');
+                                if (rolAdicional) {
+                                    await miembro.roles.add(rolAdicional);
+                                    console.log(`➕ Rol adicional asignado: ${rolAdicional.name}`);
+                                }
+                            }
+                            
                             // Segundo: remover roles anteriores (después de un pequeño delay para evitar race condition)
                             setTimeout(async () => {
                                 for (const [rolIdAntiguo] of Object.entries(AVAILABLE_ROLES)) {
@@ -803,23 +873,8 @@ async function handleAcceptReject(interaction) {
                                 }
                             }, 1000);
                             
-                            // Setear nickname con formato correcto
-                            let nuevoNickname;
-                            if (rango === 'Alta Cupula') {
-                                // Formato especial para Alta Cupula
-                                nuevoNickname = `🔥 ${nombre} #BuenaGente`;
-                            } else {
-                                // Formato estándar para otros roles
-                                let prefijo;
-                                if (rango === 'Tester') prefijo = 'EvT-T 🎪';
-                                else if (rango === 'Lid') prefijo = 'Lid.EVT 🎪';
-                                else if (rango === 'Sub') prefijo = 'Sub.EVT 🎪';
-                                else if (rango === 'Responsable') prefijo = 'Resp.INT 💀';
-                                else if (rango === 'ADM') prefijo = 'ADM.EVT 🎪';
-                                else prefijo = 'EvT 🎪';
-                                
-                                nuevoNickname = `${prefijo} ${nombre} | ${idIC}`;
-                            }
+                            // Setear nickname (usando función DRY)
+                            const nuevoNickname = generarNickname(rango, nombre, idIC);
                             
                             try {
                                 await miembro.setNickname(nuevoNickname);
