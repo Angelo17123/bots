@@ -4,8 +4,8 @@
   "description": "Bot de verificación del staff para Discord",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
-    "dev": "node bot.js",
+    "start": "node multi-bot.js",
+    "dev": "node multi-bot.js",
     "build": "echo 'No build step required'"
   },
   "dependencies": {
